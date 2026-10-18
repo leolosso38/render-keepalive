@@ -1,0 +1,32 @@
+name: Keep Render Awake
+
+on:
+  schedule:
+    # Cada 5 minutos. En repositorios públicos los minutos de Actions son
+    # ilimitados, así que el intervalo corto es gratis y absorbe los atrasos
+    # habituales del cron de GitHub (que no garantiza la hora exacta).
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: keep-render-awake
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    # Acota el consumo si el endpoint queda colgado.
+    timeout-minutes: 3
+    steps:
+      - name: Ping health endpoint
+        env:
+          HEALTH_URL: ${{ vars.HEALTH_URL || 'https://sistema-backend-6lh1.onrender.com/health' }}
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' \
+            --max-time 90 \
+            --retry 2 --retry-delay 20 --retry-all-errors \
+            "$HEALTH_URL")
+          echo "HTTP $code"
+          [ "$code" = "200" ] || { echo "::error::Health check devolvió $code"; exit 1; }

@@ -1,0 +1,27 @@
+name: Keepalive
+
+# GitHub desactiva automáticamente los workflows programados de repositorios
+# públicos que pasan 60 días sin actividad. Este workflow genera un commit
+# mensual para que el repositorio nunca llegue a ese estado y el cron de
+# keep-render-awake siga disparando.
+on:
+  schedule:
+    - cron: "0 12 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Commit heartbeat
+        run: |
+          date -u +"%Y-%m-%dT%H:%M:%SZ" > .heartbeat
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .heartbeat
+          git commit -m "chore: keepalive $(date -u +%Y-%m)"
+          git push
