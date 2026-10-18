@@ -22,7 +22,7 @@ jobs:
     steps:
       - name: Ping health endpoint
         env:
-          HEALTH_URL: ${{ vars.HEALTH_URL || 'https://sistema-backend-6lh1.onrender.com/health' }}
+          HEALTH_URL: "https://sistema-backend-6lh1.onrender.com/health"
         run: |
           code=$(curl -sS -o /dev/null -w '%{http_code}' \
             --max-time 90 \
